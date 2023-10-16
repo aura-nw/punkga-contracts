@@ -47,6 +47,9 @@ cw2 = { workpace = true }
 schemars = { workpace = true }
 serde = { workpace = true }
 thiserror = { workpace = true }
+cw721 = { workpace = true }
+cw721-base = { workpace = true, features = ["library"] }
+cw-ownable = { workpace = true }
 
 [dev-dependencies]
 cw-multi-test = { workpace = true }
