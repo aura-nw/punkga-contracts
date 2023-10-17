@@ -40,6 +40,7 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 """
 
 [dependencies]
+punkga-reward-nft = { workspace = true, features = ["library"] }
 cosmwasm-schema = { workpace = true }
 cosmwasm-std = { workpace = true }
 cw-storage-plus = { workpace = true }
@@ -47,6 +48,7 @@ cw2 = { workpace = true }
 schemars = { workpace = true }
 serde = { workpace = true }
 thiserror = { workpace = true }
+cw-utils = { workspace = true }
 
 [dev-dependencies]
 cw-multi-test = { workpace = true }

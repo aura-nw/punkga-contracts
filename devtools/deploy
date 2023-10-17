@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+function main() {
+  reward_res=$(aurad tx wasm store artifacts/punkga_reward_nft.wasm --from admin --fees 25000ueaura --gas 5000000 --output json -y -b block)
+  reward_code_id=$(echo $reward_res | jq -r '.logs[0].events[-1].attributes[-1].value')
+  echo "reward_code_id: $reward_code_id"
+
+  leveling_res=$(aurad tx wasm store artifacts/punkga_leveling.wasm --from admin --fees 25000ueaura --gas 5000000 --output json -y -b block)
+  leveling_code_id=$(echo $leveling_res | jq -r '.logs[0].events[-1].attributes[-1].value')
+  echo "leveling_code_id: $leveling_code_id"
+
+  init_leveling="{\"admin\":\"aura1l2gdwma83snqdx2fmx5nd7nx86xm8gvmnx4fwg\",\"reward_code_id\": $reward_code_id}"
+  ins_leveling_res=$(aurad tx wasm instantiate $leveling_code_id "$init_leveling" --from admin --label "punkga_leveling" --from admin --fees 25000ueaura --gas 5000000 --output json -y -b block --no-admin)
+  echo $ins_leveling_res
+
+  leveling_addr=$(aurad query wasm list-contract-by-code $leveling_code_id --output json | jq -r '.contracts[0]')
+  echo "leveling-addr: $leveling_addr"
+}
+
+main

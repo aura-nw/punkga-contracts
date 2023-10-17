@@ -1,16 +1,31 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use punkga_reward_nft::state::Metadata;
 
 use crate::state::Config;
 
 #[cw_serde]
 pub struct InstantiateMsg {
     pub admin: String,
-    pub nft_code_id: u64,
+    pub reward_code_id: u64,
 }
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    UpdateConfig { admin: String, nft_code_id: u64 },
+    UpdateConfig {
+        admin: String,
+        reward_code_id: u64,
+    },
+    MintReward {
+        user_addr: String,
+        token_id: String,
+        token_uri: Option<String>,
+        extension: Metadata,
+    },
+    UpdateUserInfo {
+        address: String,
+        level: u64,
+        total_xp: u64,
+    },
 }
 
 #[cw_serde]
