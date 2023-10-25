@@ -4,8 +4,8 @@ use cosmwasm_std::{
     StdResult, SubMsg, WasmMsg,
 };
 use cw2::set_contract_version;
+use cw2981_royalties::Metadata;
 use cw_utils::parse_reply_instantiate_data;
-use punkga_reward_nft::state::Metadata;
 #[cfg(not(feature = "library"))]
 use std::vec;
 
@@ -16,6 +16,9 @@ use crate::state::{Config, UserInfo, CONFIG, REWARD_CONTRACT, USER_INFOS};
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:punkga-leveling";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+const PUNKGA_REWARD_NAME: &str = "punkga-reward";
+const PUNKGA_REWARD_SYMBOL: &str = "PGR";
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -35,9 +38,10 @@ pub fn instantiate(
     let reward_ins_msg = CosmosMsg::Wasm(WasmMsg::Instantiate {
         admin: Some(env.contract.address.to_string()),
         code_id: config.reward_code_id,
-        msg: to_binary(&punkga_reward_nft::InstantiateMsg {
-            admin: config.admin.to_string(),
+        msg: to_binary(&cw2981_royalties::InstantiateMsg {
             minter: env.contract.address.to_string(),
+            name: PUNKGA_REWARD_NAME.to_owned(),
+            symbol: PUNKGA_REWARD_SYMBOL.to_owned(),
         })?,
         funds: vec![],
         label: "punkga_reward_nft".to_owned(),
@@ -90,7 +94,7 @@ fn execute_mint_reward(
     user_addr: String,
     token_id: String,
     token_uri: Option<String>,
-    extension: Metadata,
+    extension: Option<Metadata>,
 ) -> Result<Response, ContractError> {
     let config = CONFIG.load(deps.storage)?;
     if info.sender != config.admin {
@@ -101,7 +105,7 @@ fn execute_mint_reward(
     let reward_contract = REWARD_CONTRACT.load(deps.storage)?;
     let mint_msg = WasmMsg::Execute {
         contract_addr: reward_contract.to_string(),
-        msg: to_binary(&punkga_reward_nft::ExecuteMsg::Mint {
+        msg: to_binary(&cw2981_royalties::ExecuteMsg::Mint {
             token_id: token_id.clone(),
             owner: user_addr.clone(),
             token_uri: token_uri,

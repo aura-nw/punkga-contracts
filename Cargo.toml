@@ -19,7 +19,6 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 
 [workspace.dependencies]
 punkga-leveling = { path = "./contracts/punkga-leveling" }
-punkga-reward-nft = { path = "./contracts/punkga-reward-nft" }
 cosmwasm-schema = "1.1.8"
 cosmwasm-std = "1.1.8"
 cosmwasm-storage = "1.1.8"
@@ -29,6 +28,7 @@ cw-utils = "1.0.0"
 cw2 = "1.0.0"
 cw721 = "0.18.0"
 cw721-base = { version = "0.18.0", features = ["library"] }
+cw2981-royalties = {version = "0.18.0", features = ["library"]}
 cw-ownable = "0.5.1"
 thiserror = { version = "1.0.37" }
 schemars = "0.8.11"

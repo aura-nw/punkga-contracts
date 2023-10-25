@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use punkga_reward_nft::state::Metadata;
+use cw2981_royalties::Metadata;
 
 use crate::state::Config;
 
@@ -19,7 +19,7 @@ pub enum ExecuteMsg {
         user_addr: String,
         token_id: String,
         token_uri: Option<String>,
-        extension: Metadata,
+        extension: Option<Metadata>,
     },
     UpdateUserInfo {
         address: String,
