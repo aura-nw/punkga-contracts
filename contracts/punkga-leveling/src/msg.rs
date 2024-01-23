@@ -1,7 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cw2981_royalties::Metadata;
 
-use crate::state::Config;
+use crate::state::{Config, UserInfo};
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -34,4 +34,7 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     #[returns(Config)]
     Config {},
+
+    #[returns(UserInfo)]
+    UserInfo { address: String },
 }

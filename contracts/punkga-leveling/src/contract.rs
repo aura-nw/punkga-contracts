@@ -170,11 +170,22 @@ fn execute_update_config(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
+        QueryMsg::UserInfo { address } => to_json_binary(&query_user_info(deps, address)?),
     }
 }
 
 fn query_config(deps: Deps) -> StdResult<Config> {
     CONFIG.load(deps.storage)
+}
+
+fn query_user_info(deps: Deps, address: String) -> StdResult<UserInfo> {
+    if USER_INFOS.has(deps.storage, &address) {
+        USER_INFOS.load(deps.storage, &address)
+    } else {
+        Err(StdError::NotFound {
+            kind: format!("not found user address {:?}", address.to_string()),
+        })
+    }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
