@@ -1,7 +1,7 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_json_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn, Response,
-    StdResult, SubMsg, WasmMsg,
+    StdError, StdResult, SubMsg, WasmMsg,
 };
 use cw2::set_contract_version;
 use cw2981_royalties::Metadata;
@@ -178,12 +178,19 @@ fn query_config(deps: Deps) -> StdResult<Config> {
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
-    let reply = parse_reply_instantiate_data(msg).unwrap();
+    match msg.id {
+        REPLY_ID => {
+            let reply = parse_reply_instantiate_data(msg).unwrap();
 
-    let reward_contract = deps.api.addr_validate(&reply.contract_address)?;
-    REWARD_CONTRACT.save(deps.storage, &reward_contract)?;
+            let reward_contract = deps.api.addr_validate(&reply.contract_address)?;
+            REWARD_CONTRACT.save(deps.storage, &reward_contract)?;
 
-    Ok(Response::new().add_attribute("reward_contract", reward_contract))
+            Ok(Response::new().add_attribute("reward_contract", reward_contract))
+        }
+        _ => Err(StdError::NotFound {
+            kind: format!("not found reply id {:?}", msg.id),
+        }),
+    }
 }
 
 #[cfg(test)]
