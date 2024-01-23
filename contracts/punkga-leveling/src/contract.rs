@@ -106,8 +106,8 @@ fn execute_mint_reward(
         msg: to_json_binary(&cw2981_royalties::ExecuteMsg::Mint {
             token_id: token_id.clone(),
             owner: user_addr.clone(),
-            token_uri: token_uri,
-            extension: extension,
+            token_uri,
+            extension,
         })?,
         funds: vec![],
     };
