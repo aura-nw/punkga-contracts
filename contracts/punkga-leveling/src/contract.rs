@@ -1,6 +1,6 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn, Response,
+    to_json_binary, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn, Response,
     StdResult, SubMsg, WasmMsg,
 };
 use cw2::set_contract_version;
@@ -17,8 +17,7 @@ use crate::state::{Config, UserInfo, CONFIG, REWARD_CONTRACT, USER_INFOS};
 const CONTRACT_NAME: &str = "crates.io:punkga-leveling";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-const PUNKGA_REWARD_NAME: &str = "punkga-reward";
-const PUNKGA_REWARD_SYMBOL: &str = "PGR";
+const REPLY_ID: u64 = 1;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -31,24 +30,23 @@ pub fn instantiate(
     // save contract config
     let config = Config {
         admin: deps.api.addr_validate(&msg.admin)?,
-        reward_code_id: msg.reward_code_id.clone(),
     };
     CONFIG.save(deps.storage, &config)?;
 
     let reward_ins_msg = CosmosMsg::Wasm(WasmMsg::Instantiate {
         admin: Some(env.contract.address.to_string()),
-        code_id: config.reward_code_id,
-        msg: to_binary(&cw2981_royalties::InstantiateMsg {
+        code_id: msg.reward_code_id,
+        msg: to_json_binary(&cw2981_royalties::InstantiateMsg {
             minter: env.contract.address.to_string(),
-            name: PUNKGA_REWARD_NAME.to_owned(),
-            symbol: PUNKGA_REWARD_SYMBOL.to_owned(),
+            name: msg.reward_name.clone(),
+            symbol: msg.reward_symbol.clone(),
         })?,
         funds: vec![],
         label: "punkga_reward_nft".to_owned(),
     });
 
     let reward_ins_submsg = SubMsg {
-        id: 1,
+        id: REPLY_ID,
         msg: reward_ins_msg,
         gas_limit: None,
         reply_on: ReplyOn::Success,
@@ -58,6 +56,8 @@ pub fn instantiate(
         .add_submessage(reward_ins_submsg)
         .add_attribute("action", "instantiate")
         .add_attribute("admin", msg.admin.to_string())
+        .add_attribute("reward_name", msg.reward_name)
+        .add_attribute("reward_symbol", msg.reward_symbol.clone())
         .add_attribute("reward_code_id", msg.reward_code_id.to_string()))
 }
 
@@ -69,10 +69,7 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::UpdateConfig {
-            admin,
-            reward_code_id,
-        } => execute_update_config(deps, env, info, admin, reward_code_id),
+        ExecuteMsg::UpdateConfig { admin } => execute_update_config(deps, env, info, admin),
         ExecuteMsg::MintReward {
             user_addr,
             token_id,
@@ -105,7 +102,7 @@ fn execute_mint_reward(
     let reward_contract = REWARD_CONTRACT.load(deps.storage)?;
     let mint_msg = WasmMsg::Execute {
         contract_addr: reward_contract.to_string(),
-        msg: to_binary(&cw2981_royalties::ExecuteMsg::Mint {
+        msg: to_json_binary(&cw2981_royalties::ExecuteMsg::Mint {
             token_id: token_id.clone(),
             owner: user_addr.clone(),
             token_uri: token_uri,
@@ -151,7 +148,6 @@ fn execute_update_config(
     _env: Env,
     info: MessageInfo,
     admin: String,
-    reward_code_id: u64,
 ) -> Result<Response, ContractError> {
     // only contract admin can update config
     let config = CONFIG.load(deps.storage)?;
@@ -162,19 +158,17 @@ fn execute_update_config(
     // update config
     let new_config = Config {
         admin: deps.api.addr_validate(&admin)?,
-        reward_code_id,
     };
     CONFIG.save(deps.storage, &new_config)?;
     Ok(Response::new()
         .add_attribute("action", "update_config")
-        .add_attribute("admin", admin.to_string())
-        .add_attribute("reward_code_id", reward_code_id.to_string()))
+        .add_attribute("admin", admin.to_string()))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_binary(&query_config(deps)?),
+        QueryMsg::Config {} => to_json_binary(&query_config(deps)?),
     }
 }
 

@@ -5,6 +5,8 @@ use crate::state::Config;
 
 #[cw_serde]
 pub struct InstantiateMsg {
+    pub reward_name: String,
+    pub reward_symbol: String,
     pub admin: String,
     pub reward_code_id: u64,
 }
@@ -13,7 +15,6 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     UpdateConfig {
         admin: String,
-        reward_code_id: u64,
     },
     MintReward {
         user_addr: String,
