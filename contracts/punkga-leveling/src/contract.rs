@@ -179,13 +179,7 @@ fn query_config(deps: Deps) -> StdResult<Config> {
 }
 
 fn query_user_info(deps: Deps, address: String) -> StdResult<UserInfo> {
-    if USER_INFOS.has(deps.storage, &address) {
-        USER_INFOS.load(deps.storage, &address)
-    } else {
-        Err(StdError::NotFound {
-            kind: format!("not found user address {:?}", address.to_string()),
-        })
-    }
+    USER_INFOS.load(deps.storage, &address)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
