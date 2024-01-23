@@ -28,13 +28,14 @@ pub fn instantiate(
 ) -> Result<Response, ContractError> {
     set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
     // save contract config
+    let admin = deps.api.addr_validate(&msg.admin)?;
     let config = Config {
-        admin: deps.api.addr_validate(&msg.admin)?,
+        admin: admin.clone(),
     };
     CONFIG.save(deps.storage, &config)?;
 
     let reward_ins_msg = CosmosMsg::Wasm(WasmMsg::Instantiate {
-        admin: Some(env.contract.address.to_string()),
+        admin: Some(admin.to_string()),
         code_id: msg.reward_code_id,
         msg: to_json_binary(&cw2981_royalties::InstantiateMsg {
             minter: env.contract.address.to_string(),
